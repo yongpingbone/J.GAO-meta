@@ -1,0 +1,60 @@
+name: Deploy J.GAO Report
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate inline JSX with Babel
+        run: |
+          npm install --no-save @babel/core @babel/preset-env @babel/preset-react
+          node <<'NODE'
+          const fs = require('fs');
+          const { transformSync } = require('@babel/core');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const m = html.match(/<script[^>]*type=["']text\/babel["'][^>]*>([\s\S]*?)<\/script>/i);
+          if (!m) throw new Error('text/babel script not found');
+          transformSync(m[1], {
+            presets: ['@babel/preset-env', '@babel/preset-react'],
+            filename: 'jgao-inline.jsx',
+          });
+          console.log('Babel OK');
+          NODE
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
