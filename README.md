@@ -16,6 +16,9 @@ J.GAO 獨立唯讀報表，版型與功能參考 Liaoliao 撩撩最新版。
 - 月報告使用規則式「自動判斷」，不需要 OpenAI / Team Key
 - 公開唯讀，不暴露 Meta token 或團隊密碼
 
-## Deployment
+## Production
 
-The repository includes a GitHub Pages workflow that validates the inline JSX with Babel before deployment.
+- 正式報表：`https://speedingscs.pages.dev/jgao-meta/`
+- 這個 repository 保留完整前端原始碼。
+- `src/worker.js` 比照 Liaoliao-meta，部署成 Cloudflare Worker 時會導向正式報表。
+- GitHub Actions 只負責 Babel 驗證，避免空白頁回歸。
